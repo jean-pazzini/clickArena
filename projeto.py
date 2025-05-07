@@ -66,7 +66,9 @@ class Bloco:
     """Desenha o bloco na tela"""
     def desenhar(self):
         cor = CORES.get(self.letra, (255, 255, 255))
-        pygame.draw.rect(tela, cor, (margem_x + self.x * celula_tamanho, margem_y + self.y * celula_tamanho, celula_tamanho, celula_tamanho))
+        rect = pygame.draw.rect(tela, cor, (margem_x + self.x * celula_tamanho, margem_y + self.y * celula_tamanho, celula_tamanho, celula_tamanho))
+        pygame.draw.rect(tela, cor, rect)
+        pygame.draw.rect(tela, (50, 50, 50), rect, 2)
         texto = fonte.render(self.letra, True, (0, 0, 0)) # Redesenha a letra preta
         tela.blit(texto, (margem_x + self.x * celula_tamanho + 10, margem_y + self.y * celula_tamanho + 5))
 
@@ -95,7 +97,9 @@ class BlocoEstatico:
     def desenhar(self):
         """Desenha bloco na tela"""
         cor = CORES.get(self.letra, (255, 255, 255))
-        pygame.draw.rect(tela, cor, (margem_x + self.x * celula_tamanho, margem_y + self.pixel_y, celula_tamanho, celula_tamanho))
+        rect = pygame.draw.rect(tela, cor, (margem_x + self.x * celula_tamanho, margem_y + self.pixel_y, celula_tamanho, celula_tamanho))
+        pygame.draw.rect(tela, cor, rect)
+        pygame.draw.rect(tela, (50, 50, 50), rect, 2)
         texto = fonte.render(self.letra, True, (0, 0, 0))
         tela.blit(texto, (margem_x + self.x * celula_tamanho + 10, margem_y + self.pixel_y + 5))
 
