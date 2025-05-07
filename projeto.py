@@ -11,6 +11,7 @@ grid_linhas = 10
 grid_colunas = 6
 celula_tamanho = 40
 
+"""Auxilia na centralização do grid na tela"""
 margem_x = (tela_largura - (grid_colunas * celula_tamanho)) // 2
 margem_y = (tela_altura - (grid_linhas * celula_tamanho)) // 2
 
