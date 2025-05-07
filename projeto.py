@@ -11,6 +11,9 @@ grid_linhas = 10
 grid_colunas = 6
 celula_tamanho = 40
 
+margem_x = (tela_largura - (grid_colunas * celula_tamanho)) // 2
+margem_y = (tela_altura - (grid_linhas * celula_tamanho)) // 2
+
 # Cria a janela do game
 tela = pygame.display.set_mode((tela_largura, tela_altura))
 pygame.display.set_caption("Word Tetris") # Título da game
@@ -62,9 +65,9 @@ class Bloco:
     """Desenha o bloco na tela"""
     def desenhar(self):
         cor = CORES.get(self.letra, (255, 255, 255))
-        pygame.draw.rect(tela, cor, (self.x * celula_tamanho, self.y * celula_tamanho, celula_tamanho, celula_tamanho))
+        pygame.draw.rect(tela, cor, (margem_x + self.x * celula_tamanho, margem_y + self.y * celula_tamanho, celula_tamanho, celula_tamanho))
         texto = fonte.render(self.letra, True, (0, 0, 0)) # Redesenha a letra preta
-        tela.blit(texto, (self.x * celula_tamanho + 10, self.y * celula_tamanho + 5))
+        tela.blit(texto, (margem_x + self.x * celula_tamanho + 10, margem_y + self.y * celula_tamanho + 5))
 
 class BlocoEstatico:
     """Bloco fixo no grid"""
@@ -91,9 +94,9 @@ class BlocoEstatico:
     def desenhar(self):
         """Desenha bloco na tela"""
         cor = CORES.get(self.letra, (255, 255, 255))
-        pygame.draw.rect(tela, cor, (self.x * celula_tamanho, self.pixel_y, celula_tamanho, celula_tamanho))
+        pygame.draw.rect(tela, cor, (margem_x + self.x * celula_tamanho, margem_y + self.pixel_y, celula_tamanho, celula_tamanho))
         texto = fonte.render(self.letra, True, (0, 0, 0))
-        tela.blit(texto, (self.x * celula_tamanho + 10, self.pixel_y + 5))
+        tela.blit(texto, (margem_x + self.x * celula_tamanho + 10, margem_y + self.pixel_y + 5))
 
 def aplicar_gravidade_animada():
     """Aplica gravidade nos blocos após uma palavra ser formada e ser retirada"""
