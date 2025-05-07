@@ -13,24 +13,24 @@ celula_tamanho = 40
 
 # Cria a janela do game
 tela = pygame.display.set_mode((tela_largura, tela_altura))
-pygame.display.set_caption("Word Tetris")
+pygame.display.set_caption("Word Tetris") # Título da game
 
 # Configura fonte de texto
 fonte = pygame.font.SysFont("arial", 24)
 
 # Dicionário de cores das caixas de letras
 CORES = {
-    'P': (255, 100, 100),
-    'E': (100, 255, 100),
-    'A': (200, 100, 255),
-    'K': (100, 100, 255),
-    'F': (100, 255, 255),
-    'O': (255, 200, 100),
-    'G': (255, 150, 50),
+    'C': (255, 100, 100), # Vermelho
+    'A': (100, 255, 100), # Verde
+    'S': (200, 100, 255), # Azul
+    'G': (100, 100, 255), # Roxo
+    'E': (100, 255, 255), # Ciano
+    'L': (255, 200, 100), # Laranja
+    'O': (255, 150, 50), # Dourado
 }
 
 # Lista de palavras válidas no game
-PALAVRAS_VALIDAS = ['PEAK', 'FOG']
+PALAVRAS_VALIDAS = ['CASA', 'GELO']
 palavras_encontradas = []
 
 # Inicia o grid com todas as caixas vazias
@@ -49,6 +49,7 @@ class Bloco:
         
     """Movimenta o bloco pra baixo, se possível"""
     def mover_para_baixo(self):
+        # Verifica se está no fundo do game ou tem bloco embaixo
         if self.y + 1 < grid_linhas and grid[self.y + 1][self.x] is None:
             self.y += 1
             return True
@@ -62,10 +63,11 @@ class Bloco:
     def desenhar(self):
         cor = CORES.get(self.letra, (255, 255, 255))
         pygame.draw.rect(tela, cor, (self.x * celula_tamanho, self.y * celula_tamanho, celula_tamanho, celula_tamanho))
-        texto = fonte.render(self.letra, True, (0, 0, 0)) # Redesenha aletra preta
+        texto = fonte.render(self.letra, True, (0, 0, 0)) # Redesenha a letra preta
         tela.blit(texto, (self.x * celula_tamanho + 10, self.y * celula_tamanho + 5))
 
 class BlocoEstatico:
+    """Bloco fixo no grid"""
     def __init__(self, letra, x, y):
         self.letra = letra
         self.x = x
@@ -75,60 +77,73 @@ class BlocoEstatico:
         self.velocidade = 5
 
     def atualizar(self):
+        """Atualiza posição durante animação"""
         if self.pixel_y < self.alvo_y:
             self.pixel_y += self.velocidade
             if self.pixel_y > self.alvo_y:
                 self.pixel_y = self.alvo_y
 
     def cair_para(self, nova_linha):
+        """Nova posição de queda para animação"""
         self.y = nova_linha
         self.alvo_y = nova_linha * celula_tamanho
 
     def desenhar(self):
+        """Desenha bloco na tela"""
         cor = CORES.get(self.letra, (255, 255, 255))
         pygame.draw.rect(tela, cor, (self.x * celula_tamanho, self.pixel_y, celula_tamanho, celula_tamanho))
         texto = fonte.render(self.letra, True, (0, 0, 0))
         tela.blit(texto, (self.x * celula_tamanho + 10, self.pixel_y + 5))
 
 def aplicar_gravidade_animada():
+    """Aplica gravidade nos blocos após uma palavra ser formada e ser retirada"""
     for x in range(grid_colunas):
         nova_coluna = []
+        """Coleta todos os blocos de uma coluna de baixo pra cima"""
         for y in range(grid_linhas - 1, -1, -1):
             bloco = grid[y][x]
             if bloco:
                 nova_coluna.append(bloco)
+        """Reorganiza os blocos na coluna de baixo para cima"""
         for y in range(grid_linhas - 1, -1, -1):
             if nova_coluna:
                 bloco = nova_coluna.pop(0)
                 grid[y][x] = bloco
                 if bloco.y != y:
-                    bloco.cair_para(y)
+                    bloco.cair_para(y) # Animação do bloco caindo pra nova posição
             else:
                 grid[y][x] = None
 
 def verificar_palavras():
+    """Verifica se foi formado alguma palavra válida"""
     global palavras_encontradas
+    
+    """Verifica palavras validas nas linhas"""
     for y in range(grid_linhas):
         linha = ''.join([grid[y][x].letra if grid[y][x] else '' for x in range(grid_colunas)])
         for palavra in PALAVRAS_VALIDAS:
             if palavra in linha and palavra not in palavras_encontradas:
                 palavras_encontradas.append(palavra)
                 idx = linha.index(palavra)
+                # Remove os blocos que formaram uma palavra
                 for i in range(len(palavra)):
                     grid[y][idx + i] = None
 
+    """Verifica palavras validas nas colunas"""
     for x in range(grid_colunas):
         coluna = ''.join([grid[y][x].letra if grid[y][x] else '' for y in range(grid_linhas)])
         for palavra in PALAVRAS_VALIDAS:
             if palavra in coluna and palavra not in palavras_encontradas:
                 palavras_encontradas.append(palavra)
                 idx = coluna.index(palavra)
+                # Remove os blocos que formaram uma palavra
                 for i in range(len(palavra)):
                     grid[idx + i][x] = None
 
     aplicar_gravidade_animada()
 
 def blocos_em_movimento():
+    """Verifica se tem blocos em animação de queda"""
     for y in range(grid_linhas):
         for x in range(grid_colunas):
             bloco = grid[y][x]
@@ -137,6 +152,7 @@ def blocos_em_movimento():
     return False
 
 def verificar_game_over():
+    """Verifica se o jogo acabou quando um bloco atinge o topo"""
     return grid[0][bloco_atual.x] is not None if bloco_atual else False
 
 def mostrar_fim_de_jogo(mensagem):
@@ -144,6 +160,7 @@ def mostrar_fim_de_jogo(mensagem):
     tela.blit(texto_fim, (tela_largura // 2 - texto_fim.get_width() // 2, tela_altura // 2))
 
 def mostrar_menu():
+    """Menu inicical do game"""
     tela.fill((30, 30, 30))
     titulo = fonte.render("Word Tetris", True, (255, 255, 255))
     opcao_jogar = fonte.render("1. Entrar no jogo", True, (255, 255, 255))
@@ -168,8 +185,9 @@ def mostrar_menu():
 
 mostrar_menu()  # Exibe o menu antes de iniciar o jogo
 
-bloco_atual = Bloco(random.choice(list(CORES.keys())))
+bloco_atual = Bloco(random.choice(list(CORES.keys()))) # Cria o primeiro bloco
 
+"""Loop principal do game"""
 rodando = True
 while rodando:
     tela.fill((30, 30, 30))
@@ -178,25 +196,31 @@ while rodando:
         if evento.type == pygame.QUIT:
             rodando = False
         elif evento.type == pygame.KEYDOWN and bloco_atual:
+            """Movimentação dos blocos para direita e esquerda utilizando as setas do teclado"""
             if evento.key == pygame.K_LEFT and bloco_atual.x > 0 and grid[bloco_atual.y][bloco_atual.x - 1] is None:
                 bloco_atual.x -= 1
             elif evento.key == pygame.K_RIGHT and bloco_atual.x < grid_colunas - 1 and grid[bloco_atual.y][bloco_atual.x + 1] is None:
                 bloco_atual.x += 1
 
+    # Queda automática dos blocos
     tempo_atual = pygame.time.get_ticks()
     if tempo_atual - ultima_queda > tempo_queda:
         if bloco_atual:
             if not bloco_atual.mover_para_baixo():
-                bloco_atual.fixar()
-                verificar_palavras()
+                bloco_atual.fixar() # Fixa o bloco na posição atual
+                verificar_palavras() # Verifica se há palavras válidas formadas
                 bloco_atual = None
-        elif not blocos_em_movimento():
+        elif not blocos_em_movimento(): # Só cria novo bloco se não houver animações
             bloco_atual = Bloco(random.choice(list(CORES.keys())))
+            
+            # Verifica condições de game over
             if verificar_game_over():
                 mostrar_fim_de_jogo("Game Over! Limite da tela atingido.")
                 pygame.display.flip()
                 pygame.time.delay(2000)  # Espera 2 segundos para encerrar
                 rodando = False
+                
+            # Verifica condições de vitória
             elif len(palavras_encontradas) == len(PALAVRAS_VALIDAS):
                 mostrar_fim_de_jogo("Você encontrou todas as palavras!")
                 pygame.display.flip()
@@ -204,12 +228,14 @@ while rodando:
                 rodando = False
         ultima_queda = tempo_atual
 
+    # Atualiza animações dos blocos
     for y in range(grid_linhas):
         for x in range(grid_colunas):
             bloco = grid[y][x]
             if bloco:
                 bloco.atualizar()
 
+    # Desenha todos os blocos do grid
     for y in range(grid_linhas):
         for x in range(grid_colunas):
             bloco = grid[y][x]
