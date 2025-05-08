@@ -102,6 +102,17 @@ class BlocoEstatico:
         pygame.draw.rect(tela, (50, 50, 50), rect, 2)
         texto = fonte.render(self.letra, True, (0, 0, 0))
         tela.blit(texto, (margem_x + self.x * celula_tamanho + 10, margem_y + self.pixel_y + 5))
+        
+def desenhar_borda_grid():
+    grid_width = grid_colunas * celula_tamanho
+    grid_height = grid_linhas * celula_tamanho
+    border_rect = pygame.Rect(
+        margem_x - 2,  # -2 para a borda ficar fora
+        margem_y - 2,
+        grid_width + 4,
+        grid_height + 4
+    )
+    pygame.draw.rect(tela, (200, 200, 200), border_rect, 3)  # Borda grossa cinza
 
 def aplicar_gravidade_animada():
     """Aplica gravidade nos blocos após uma palavra ser formada e ser retirada"""
@@ -199,6 +210,7 @@ bloco_atual = Bloco(random.choice(list(CORES.keys()))) # Cria o primeiro bloco
 rodando = True
 while rodando:
     tela.fill((30, 30, 30))
+    desenhar_borda_grid()
 
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
