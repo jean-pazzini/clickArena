@@ -300,7 +300,9 @@ while rodando:
                         reiniciar_jogo()
                         pausado = False
                     elif acao == "menu":
+                        reiniciar_jogo()
                         mostrar_menu()
+                        
                     
             elif not pausado and bloco_atual:
                 """Movimentação dos blocos para direita e esquerda utilizando as setas do teclado"""
