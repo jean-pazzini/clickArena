@@ -103,6 +103,28 @@ class BlocoEstatico:
         texto = fonte.render(self.letra, True, (0, 0, 0))
         tela.blit(texto, (margem_x + self.x * celula_tamanho + 10, margem_y + self.pixel_y + 5))
         
+# Adicione esta função após as outras funções de desenho
+def desenhar_palavras_alvo():
+    """Exibe as palavras que precisam ser encontradas acima do grid"""
+    titulo_palavras = fonte.render("Forme as palavras:", True, (255, 255, 255))
+    tela.blit(titulo_palavras, (margem_x, margem_y - 60))  # 60px acima do grid
+    
+    espacamento = 0
+    for i, palavra in enumerate(PALAVRAS_VALIDAS):
+        # Se a palavra já foi encontrada, mostra riscada
+        if palavra in palavras_encontradas:
+            texto = fonte.render(palavra, True, (100, 255, 100))  # Verde para completas
+            tela.blit(texto, (margem_x + espacamento, margem_y - 30))
+            # Desenha linha de riscado
+            pygame.draw.line(tela, (100, 255, 100),
+                           (margem_x + espacamento, margem_y - 20),
+                           (margem_x + espacamento + len(palavra)*20, margem_y - 20), 2)
+        else:
+            texto = fonte.render(palavra, True, (255, 255, 255))  # Branco para incompletas
+            tela.blit(texto, (margem_x + espacamento, margem_y - 30))
+        
+        espacamento += len(palavra) * 20 + 20  # Espaço entre palavras
+        
 def desenhar_borda_grid():
     grid_width = grid_colunas * celula_tamanho
     grid_height = grid_linhas * celula_tamanho
@@ -210,7 +232,9 @@ bloco_atual = Bloco(random.choice(list(CORES.keys()))) # Cria o primeiro bloco
 rodando = True
 while rodando:
     tela.fill((30, 30, 30))
+    
     desenhar_borda_grid()
+    desenhar_palavras_alvo()
 
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
