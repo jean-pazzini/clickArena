@@ -4,6 +4,9 @@ import random
 # Inicializa o pygame
 pygame.init()
 
+# Variável para pausar o game
+pausado = False
+
 # Configurações da tela e grid
 tela_largura = 400
 tela_altura = 600
@@ -192,6 +195,11 @@ def blocos_em_movimento():
                 return True
     return False
 
+def mostrar_mensagem_pause():
+    """Exibe a mensagem de pause no centro da tela"""
+    mensagem = fonte.render("PAUSE", True, (255, 255, 255))
+    tela.blit(mensagem, (tela_largura // 2 - mensagem.get_width() // 2, tela_altura // 2))
+
 def verificar_game_over():
     """Verifica se o jogo acabou quando um bloco atinge o topo"""
     return grid[0][bloco_atual.x] is not None if bloco_atual else False
@@ -239,45 +247,51 @@ while rodando:
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
             rodando = False
-        elif evento.type == pygame.KEYDOWN and bloco_atual:
-            """Movimentação dos blocos para direita e esquerda utilizando as setas do teclado"""
-            if evento.key == pygame.K_LEFT and bloco_atual.x > 0 and grid[bloco_atual.y][bloco_atual.x - 1] is None:
-                bloco_atual.x -= 1
-            elif evento.key == pygame.K_RIGHT and bloco_atual.x < grid_colunas - 1 and grid[bloco_atual.y][bloco_atual.x + 1] is None:
-                bloco_atual.x += 1
+        elif evento.type == pygame.KEYDOWN:
+            if evento.key == pygame.K_p:  # Tecla P para pausar/despausar
+                pausado = not pausado
+            elif not pausado and bloco_atual:
+                """Movimentação dos blocos para direita e esquerda utilizando as setas do teclado"""
+                if evento.key == pygame.K_LEFT and bloco_atual.x > 0 and grid[bloco_atual.y][bloco_atual.x - 1] is None:
+                    bloco_atual.x -= 1
+                elif evento.key == pygame.K_RIGHT and bloco_atual.x < grid_colunas - 1 and grid[bloco_atual.y][bloco_atual.x + 1] is None:
+                    bloco_atual.x += 1
 
-    # Queda automática dos blocos
-    tempo_atual = pygame.time.get_ticks()
-    if tempo_atual - ultima_queda > tempo_queda:
-        if bloco_atual:
-            if not bloco_atual.mover_para_baixo():
-                bloco_atual.fixar() # Fixa o bloco na posição atual
-                verificar_palavras() # Verifica se há palavras válidas formadas
-                bloco_atual = None
-        elif not blocos_em_movimento(): # Só cria novo bloco se não houver animações
-            bloco_atual = Bloco(random.choice(list(CORES.keys())))
-            
-            # Verifica condições de game over
-            if verificar_game_over():
-                mostrar_fim_de_jogo("Game Over! Limite da tela atingido.")
-                pygame.display.flip()
-                pygame.time.delay(2000)  # Espera 2 segundos para encerrar
-                rodando = False
+    if not pausado:
+        # Queda automática dos blocos
+        tempo_atual = pygame.time.get_ticks()
+        if tempo_atual - ultima_queda > tempo_queda:
+            if bloco_atual:
+                if not bloco_atual.mover_para_baixo():
+                    bloco_atual.fixar() # Fixa o bloco na posição atual
+                    verificar_palavras() # Verifica se há palavras válidas formadas
+                    bloco_atual = None
+            elif not blocos_em_movimento(): # Só cria novo bloco se não houver animações
+                bloco_atual = Bloco(random.choice(list(CORES.keys())))
                 
-            # Verifica condições de vitória
-            elif len(palavras_encontradas) == len(PALAVRAS_VALIDAS):
-                mostrar_fim_de_jogo("Você encontrou todas as palavras!")
-                pygame.display.flip()
-                pygame.time.delay(2000)  # Espera 2 segundos para encerrar
-                rodando = False
-        ultima_queda = tempo_atual
+                # Verifica condições de game over
+                if verificar_game_over():
+                    mostrar_fim_de_jogo("Game Over! Limite da tela atingido.")
+                    pygame.display.flip()
+                    pygame.time.delay(2000)  # Espera 2 segundos para encerrar
+                    rodando = False
+                    
+                # Verifica condições de vitória
+                elif len(palavras_encontradas) == len(PALAVRAS_VALIDAS):
+                    mostrar_fim_de_jogo("Você encontrou todas as palavras!")
+                    pygame.display.flip()
+                    pygame.time.delay(2000)  # Espera 2 segundos para encerrar
+                    rodando = False
+            ultima_queda = tempo_atual
 
-    # Atualiza animações dos blocos
-    for y in range(grid_linhas):
-        for x in range(grid_colunas):
-            bloco = grid[y][x]
-            if bloco:
-                bloco.atualizar()
+        # Atualiza animações dos blocos
+        for y in range(grid_linhas):
+            for x in range(grid_colunas):
+                bloco = grid[y][x]
+                if bloco:
+                    bloco.atualizar()
+    else:
+        mostrar_mensagem_pause()
 
     # Desenha todos os blocos do grid
     for y in range(grid_linhas):
