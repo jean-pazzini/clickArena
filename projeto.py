@@ -130,6 +130,40 @@ def desenhar_palavras_alvo():
 def desenhar_instrucao_pause():
     texto_pause = fonte.render("P: Pause", True, (255, 255, 255))
     tela.blit(texto_pause, (300, 10))  # Posiciona o texto informativo no canto superior direito
+    
+def mostrar_menu_pause():
+    """Menu de pause do jogo"""
+    # Cria uma camada levemente transparente no fundo
+    overlay = pygame.Surface((tela_largura, tela_altura), pygame.SRCALPHA)
+    overlay.fill((30, 30, 30, 200))  # Preto meio transparente
+    tela.blit(overlay, (0, 0))
+    
+    titulo = fonte.render("JOGO PAUSADO", True, (255, 255, 255))
+    opcao_continuar = fonte.render("P: Voltar ao jogo", True, (255, 255, 255))
+    opcao_reiniciar = fonte.render("R: Reiniciar o jogo", True, (255, 255, 255))
+    opcao_menu = fonte.render("T: Voltar para tela inicial", True, (255, 255, 255))
+    
+    tela.blit(titulo, (tela_largura // 2 - titulo.get_width() // 2, tela_altura // 4))
+    tela.blit(opcao_continuar, (tela_largura // 2 - opcao_continuar.get_width() // 2, tela_altura // 2 - 30))
+    tela.blit(opcao_reiniciar, (tela_largura // 2 - opcao_reiniciar.get_width() // 2, tela_altura // 2 + 10))
+    tela.blit(opcao_menu, (tela_largura // 2 - opcao_menu.get_width() // 2, tela_altura // 2 + 50))
+    
+    pygame.display.flip()
+
+    esperando = True
+    while esperando:
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_p:  # Tecla P para despausar
+                    esperando = False
+                    return "continuar"
+                elif evento.key == pygame.K_r:  # Tecla R para reiniciar
+                    return "reiniciar"
+                elif evento.key == pygame.K_t:  # Tecla T para voltar para tela inicial
+                    return "menu"
         
 def desenhar_borda_grid():
     grid_width = grid_colunas * celula_tamanho
@@ -198,11 +232,6 @@ def blocos_em_movimento():
                 return True
     return False
 
-def mostrar_mensagem_pause():
-    """Exibe a mensagem de pause no centro da tela"""
-    mensagem = fonte.render("PAUSE", True, (255, 255, 255))
-    tela.blit(mensagem, (tela_largura // 2 - mensagem.get_width() // 2, tela_altura // 2))
-
 def verificar_game_over():
     """Verifica se o jogo acabou quando um bloco atinge o topo"""
     return grid[0][bloco_atual.x] is not None if bloco_atual else False
@@ -210,6 +239,15 @@ def verificar_game_over():
 def mostrar_fim_de_jogo(mensagem):
     texto_fim = fonte.render(mensagem, True, (255, 255, 255))
     tela.blit(texto_fim, (tela_largura // 2 - texto_fim.get_width() // 2, tela_altura // 2))
+    
+def reiniciar_jogo():
+    """Reinicia todas as variáveis do game"""
+    global grid, palavras_encontradas, bloco_atual, ultima_queda, pausado
+    grid = [[None for _ in range(grid_colunas)] for _ in range(grid_linhas)]
+    palavras_encontradas = []
+    bloco_atual = Bloco(random.choice(list(CORES.keys())))
+    ultima_queda = pygame.time.get_ticks()
+    pausado = False
 
 def mostrar_menu():
     """Menu inicical do game"""
@@ -244,9 +282,9 @@ rodando = True
 while rodando:
     tela.fill((30, 30, 30))
     
-    desenhar_instrucao_pause()
     desenhar_borda_grid()
     desenhar_palavras_alvo()
+    desenhar_instrucao_pause()
 
     for evento in pygame.event.get():
         if evento.type == pygame.QUIT:
@@ -254,6 +292,16 @@ while rodando:
         elif evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_p:  # Tecla P para pausar/despausar
                 pausado = not pausado
+                if pausado:
+                    acao = mostrar_menu_pause()
+                    if acao == "continuar":
+                        pausado = False
+                    elif acao == "reiniciar":
+                        reiniciar_jogo()
+                        pausado = False
+                    elif acao == "menu":
+                        mostrar_menu()
+                    
             elif not pausado and bloco_atual:
                 """Movimentação dos blocos para direita e esquerda utilizando as setas do teclado"""
                 if evento.key == pygame.K_LEFT and bloco_atual.x > 0 and grid[bloco_atual.y][bloco_atual.x - 1] is None:
@@ -294,8 +342,6 @@ while rodando:
                 bloco = grid[y][x]
                 if bloco:
                     bloco.atualizar()
-    else:
-        mostrar_mensagem_pause()
 
     # Desenha todos os blocos do grid
     for y in range(grid_linhas):
