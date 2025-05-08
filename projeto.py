@@ -106,7 +106,6 @@ class BlocoEstatico:
         texto = fonte.render(self.letra, True, (0, 0, 0))
         tela.blit(texto, (margem_x + self.x * celula_tamanho + 10, margem_y + self.pixel_y + 5))
         
-# Adicione esta função após as outras funções de desenho
 def desenhar_palavras_alvo():
     """Exibe as palavras que precisam ser encontradas acima do grid"""
     titulo_palavras = fonte.render("Forme as palavras:", True, (255, 255, 255))
@@ -127,6 +126,10 @@ def desenhar_palavras_alvo():
             tela.blit(texto, (margem_x + espacamento, margem_y - 30))
         
         espacamento += len(palavra) * 20 + 20  # Espaço entre palavras
+        
+def desenhar_instrucao_pause():
+    texto_pause = fonte.render("P: Pause", True, (255, 255, 255))
+    tela.blit(texto_pause, (300, 10))  # Posiciona o texto informativo no canto superior direito
         
 def desenhar_borda_grid():
     grid_width = grid_colunas * celula_tamanho
@@ -241,6 +244,7 @@ rodando = True
 while rodando:
     tela.fill((30, 30, 30))
     
+    desenhar_instrucao_pause()
     desenhar_borda_grid()
     desenhar_palavras_alvo()
 
