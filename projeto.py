@@ -250,18 +250,41 @@ def reiniciar_jogo():
     bloco_atual = Bloco(random.choice(list(CORES.keys())))
     ultima_queda = pygame.time.get_ticks()
     pausado = False
-
-def mostrar_menu():
-    """Menu inicical do game"""
+    
+def mostrar_instrucoes():
+    """Tela de instruções do jogo"""
     tela.fill((30, 30, 30))
-    titulo = fonte.render("Word Tetris", True, (255, 255, 255))
-    opcao_jogar = fonte.render("1. Entrar no jogo", True, (255, 255, 255))
-    opcao_sair = fonte.render("2. Sair", True, (255, 255, 255))
-    tela.blit(titulo, (tela_largura // 2 - titulo.get_width() // 2, tela_altura // 4))
-    tela.blit(opcao_jogar, (tela_largura // 2 - opcao_jogar.get_width() // 2, tela_altura // 2 - 30))
-    tela.blit(opcao_sair, (tela_largura // 2 - opcao_sair.get_width() // 2, tela_altura // 2 + 10))
+    
+    # Título
+    titulo = fonte.render("COMO JOGAR", True, (255, 255, 255))
+    tela.blit(titulo, (tela_largura // 2 - titulo.get_width() // 2, 50))
+    
+    # Instruções
+    fonte_instrucoes = pygame.font.SysFont("arial", 18)
+    
+    instrucoes = [
+        "Objetivo: Forme as palavras listadas no topo",
+        "do grid, tanto na horizontal quanto na vertical.",
+        "",
+        "Controles:",
+        "- Setas ESQUERDA/DIREITA: Movem o bloco",
+        "- P: Pausa o game",
+        "",
+        "Mecânicas:",
+        "- Blocos com letras caem automaticamente",
+        "- Forme palavras para limpá-las do grid",
+        "- Palavras podem ser formadas da esquerda",
+        "para direita ou de cima para baixo",
+        "",
+        "Pressione T para voltar ao menu"
+    ]
+    
+    for i, linha in enumerate(instrucoes):
+        texto = fonte_instrucoes.render(linha, True, (255, 255, 255))
+        tela.blit(texto, (tela_largura // 2 - texto.get_width() // 2, 100 + i * 25))
+    
     pygame.display.flip()
-
+    
     esperando = True
     while esperando:
         for evento in pygame.event.get():
@@ -269,9 +292,34 @@ def mostrar_menu():
                 pygame.quit()
                 exit()
             elif evento.type == pygame.KEYDOWN:
-                if evento.key == pygame.K_1:  # Tecla 1 para entrar no jogo
+                if evento.key == pygame.K_t:
                     esperando = False
-                elif evento.key == pygame.K_2:  # Tecla 2 para sair
+
+def mostrar_menu():
+    """Menu inicical do game"""
+    while True:
+        tela.fill((30, 30, 30))
+        titulo = fonte.render("Word Tetris", True, (255, 255, 255))
+        opcao_jogar = fonte.render("1. Entrar no jogo", True, (255, 255, 255))
+        opcao_instrucoes = fonte.render("2. Como jogar?", True, (255, 255, 255))
+        opcao_sair = fonte.render("3. Sair", True, (255, 255, 255))
+        tela.blit(titulo, (tela_largura // 2 - titulo.get_width() // 2, tela_altura // 4))
+        tela.blit(opcao_jogar, (tela_largura // 2 - opcao_jogar.get_width() // 2, tela_altura // 2 - 30))
+        tela.blit(opcao_instrucoes, (tela_largura // 2 - opcao_instrucoes.get_width() // 2, tela_altura // 2 + 10))
+        tela.blit(opcao_sair, (tela_largura // 2 - opcao_sair.get_width() // 2, tela_altura // 2 + 50))
+        pygame.display.flip()
+
+
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_1:  # Tecla 1 para entrar no jogo
+                    return
+                elif evento.key == pygame.K_2:  # Tecla 2 para instruções
+                    mostrar_instrucoes()
+                elif evento.key == pygame.K_3:  # Tecla 3 para sair
                     pygame.quit()
                     exit()
 
