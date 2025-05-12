@@ -212,14 +212,16 @@ def verificar_palavras():
 
     """Verifica palavras validas nas colunas"""
     for x in range(grid_colunas):
-        coluna = ''.join([grid[y][x].letra if grid[y][x] else '' for y in range(grid_linhas)])
+        coluna_com_posicoes = [(y, grid[y][x].letra) for y in range(grid_linhas) if grid[y][x]]
+        coluna = ''.join([letra for (y, letra) in coluna_com_posicoes])
         for palavra in PALAVRAS_VALIDAS:
             if palavra in coluna and palavra not in palavras_encontradas:
                 palavras_encontradas.append(palavra)
                 idx = coluna.index(palavra)
                 # Remove os blocos que formaram uma palavra
                 for i in range(len(palavra)):
-                    grid[idx + i][x] = None
+                    y_real = coluna_com_posicoes[idx + i][0]  # Pega o y armazenado
+                    grid[y_real][x] = None  # Remove na posição correta
 
     aplicar_gravidade_animada()
 
