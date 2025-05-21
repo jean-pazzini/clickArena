@@ -45,6 +45,7 @@ grid = [[None for _ in range(grid_colunas)] for _ in range(grid_linhas)]
 
 # Configuração de tempo de queda dos blocos
 tempo_queda = 500
+tempo_queda_rapida = 50  # Novo: tempo de queda quando seta para baixo pressionada
 ultima_queda = pygame.time.get_ticks() # Armazena o tempo da última queda
 
 class Bloco:
@@ -295,8 +296,73 @@ def mostrar_instrucoes():
                 if evento.key == pygame.K_t:
                     esperando = False
 
+def mostrar_balao_pixel(frase):
+    """Mostra um balão pixel art com efeito máquina de escrever e timer de 15s"""
+    largura_balao = 380
+    altura_balao = 120
+    x_balao = (tela_largura - largura_balao) // 2
+    y_balao = (tela_altura - altura_balao) // 2 - 60
+
+    fonte_pixel = pygame.font.SysFont("consolas", 22, bold=True)
+    cor_balao = (255, 255, 255)
+    cor_borda = (80, 80, 80)
+    cor_texto = (30, 30, 30)
+
+    texto_atual = ""
+    clock = pygame.time.Clock()
+    tempo_inicio = pygame.time.get_ticks()
+    tempo_limite = 15000  # 15 segundos em milissegundos
+
+    i = 0
+    while i <= len(frase):
+        tela.fill((30, 30, 30))
+        # Desenha balão pixelado (retângulo com borda grossa)
+        pygame.draw.rect(tela, cor_borda, (x_balao-4, y_balao-4, largura_balao+8, altura_balao+8), border_radius=8)
+        pygame.draw.rect(tela, cor_balao, (x_balao, y_balao, largura_balao, altura_balao), border_radius=8)
+        # Triângulo do balão
+        pygame.draw.polygon(tela, cor_borda, [
+            (x_balao+60, y_balao+altura_balao),
+            (x_balao+90, y_balao+altura_balao+24),
+            (x_balao+120, y_balao+altura_balao)
+        ])
+        pygame.draw.polygon(tela, cor_balao, [
+            (x_balao+65, y_balao+altura_balao),
+            (x_balao+90, y_balao+altura_balao+16),
+            (x_balao+115, y_balao+altura_balao)
+        ])
+        # Efeito máquina de escrever
+        texto_atual = frase[:i]
+        linhas = []
+        temp = ""
+        for palavra in texto_atual.split(" "):
+            if fonte_pixel.size(temp + " " + palavra)[0] > largura_balao-30:
+                linhas.append(temp)
+                temp = palavra
+            else:
+                temp = (temp + " " + palavra).strip()
+        if temp:
+            linhas.append(temp)
+        for idx, linha in enumerate(linhas):
+            texto_render = fonte_pixel.render(linha, True, cor_texto)
+            tela.blit(texto_render, (x_balao+18, y_balao+18+idx*32))
+        # Desenha o timer
+        tempo_passado = (pygame.time.get_ticks() - tempo_inicio) // 1000
+        tempo_restante = max(0, 15 - tempo_passado)
+        timer_text = fonte.render(f"Tempo: {tempo_restante:02d}s", True, (120, 120, 120))
+        tela.blit(timer_text, (x_balao + largura_balao - 120, y_balao + altura_balao - 32))
+        pygame.display.flip()
+        pygame.time.delay(30)
+        clock.tick(60)
+        # Checa se o tempo acabou
+        if pygame.time.get_ticks() - tempo_inicio > tempo_limite:
+            i = len(frase)
+        else:
+            i += 1
+    # Espera um pouco após terminar
+    pygame.time.delay(500)
+
 def obter_palavras_do_jogador():
-    """Tela para o jogador digitar 2 palavras"""
+    """Tela para o jogador digitar 2 palavras de 3 letras"""
     palavras = []
     fonte_input = pygame.font.SysFont("arial", 28)
     input_ativa = [True, False]
@@ -305,7 +371,7 @@ def obter_palavras_do_jogador():
 
     while len(palavras) < 2:
         tela.fill((30, 30, 30))
-        titulo = fonte.render("Digite 2 palavras para jogar", True, (255, 255, 255))
+        titulo = fonte.render("Digite 2 palavras de 3 letras", True, (255, 255, 255))
         tela.blit(titulo, (tela_largura // 2 - titulo.get_width() // 2, 80))
 
         for i in range(2):
@@ -327,7 +393,7 @@ def obter_palavras_do_jogador():
                 if input_ativa[indice]:
                     if evento.key == pygame.K_RETURN:
                         palavra = textos[indice].strip().upper()
-                        if len(palavra) >= 2 and palavra.isalpha():
+                        if len(palavra) == 3 and palavra.isalpha():
                             palavras.append(palavra)
                             input_ativa[indice] = False
                             if indice < 1:
@@ -337,7 +403,7 @@ def obter_palavras_do_jogador():
                             textos[indice] = ""
                     elif evento.key == pygame.K_BACKSPACE:
                         textos[indice] = textos[indice][:-1]
-                    elif evento.unicode.isalpha() and len(textos[indice]) < grid_colunas:
+                    elif evento.unicode.isalpha() and len(textos[indice]) < 3:
                         textos[indice] += evento.unicode.upper()
     return palavras
 
@@ -373,14 +439,17 @@ def mostrar_menu():
 while True:
     acao = mostrar_menu()
     if acao == "jogar":
+        mostrar_balao_pixel("Bem vindo ao word Tetris! Para começar digite 2 palavras com 3 letras: ")
         PALAVRAS_VALIDAS = obter_palavras_do_jogador()
         palavras_encontradas = []
         LETRAS_PERMITIDAS = list(set(''.join(PALAVRAS_VALIDAS)))
         grid = [[None for _ in range(grid_colunas)] for _ in range(grid_linhas)]
         tempo_queda = 500
+        tempo_queda_rapida = 50  # Novo: tempo de queda quando seta para baixo pressionada
         ultima_queda = pygame.time.get_ticks()
         bloco_atual = Bloco(random.choice(LETRAS_PERMITIDAS))
         pausado = False
+        queda_rapida = False  # Novo: indica se a seta para baixo está pressionada
 
         rodando = True
         while rodando:
@@ -393,7 +462,7 @@ while True:
                 if evento.type == pygame.QUIT:
                     rodando = False
                 elif evento.type == pygame.KEYDOWN:
-                    if evento.key == pygame.K_p:  # Tecla P para pausar/despausar
+                    if evento.key == pygame.K_p:
                         pausado = not pausado
                         if pausado:
                             acao = mostrar_menu_pause()
@@ -408,41 +477,42 @@ while True:
                             elif acao == "menu":
                                 rodando = False
                                 break
+                    elif evento.key == pygame.K_DOWN:
+                        queda_rapida = True  # Novo: ativa queda rápida
                     elif not pausado and bloco_atual:
                         """Movimentação dos blocos para direita e esquerda utilizando as setas do teclado"""
                         if evento.key == pygame.K_LEFT and bloco_atual.x > 0 and grid[bloco_atual.y][bloco_atual.x - 1] is None:
                             bloco_atual.x -= 1
                         elif evento.key == pygame.K_RIGHT and bloco_atual.x < grid_colunas - 1 and grid[bloco_atual.y][bloco_atual.x + 1] is None:
                             bloco_atual.x += 1
+                elif evento.type == pygame.KEYUP:
+                    if evento.key == pygame.K_DOWN:
+                        queda_rapida = False  # Novo: desativa queda rápida
 
             if not pausado:
-                # Queda automática dos blocos
                 tempo_atual = pygame.time.get_ticks()
-                if tempo_atual - ultima_queda > tempo_queda:
+                # Usa tempo_queda_rapida se queda_rapida estiver ativa
+                tempo_queda_atual = tempo_queda_rapida if queda_rapida else tempo_queda
+                if tempo_atual - ultima_queda > tempo_queda_atual:
                     if bloco_atual:
                         if not bloco_atual.mover_para_baixo():
-                            bloco_atual.fixar() # Fixa o bloco na posição atual
-                            verificar_palavras() # Verifica se há palavras válidas formadas
+                            bloco_atual.fixar()
+                            verificar_palavras()
                             bloco_atual = None
-                    elif not blocos_em_movimento(): # Só cria novo bloco se não houver animações
+                    elif not blocos_em_movimento():
                         bloco_atual = Bloco(random.choice(LETRAS_PERMITIDAS))
-                        
-                        # Verifica condições de game over
                         if verificar_game_over():
                             mostrar_fim_de_jogo("Game Over! Limite da tela atingido.")
                             pygame.display.flip()
-                            pygame.time.delay(2000)  # Espera 2 segundos para encerrar
+                            pygame.time.delay(2000)
                             rodando = False
-                            
-                        # Verifica condições de vitória
                         elif len(palavras_encontradas) == len(PALAVRAS_VALIDAS):
                             mostrar_fim_de_jogo("Você encontrou todas as palavras!")
                             pygame.display.flip()
-                            pygame.time.delay(2000)  # Espera 2 segundos para encerrar
+                            pygame.time.delay(2000)
                             rodando = False
                     ultima_queda = tempo_atual
 
-                # Atualiza animações dos blocos
                 for y in range(grid_linhas):
                     for x in range(grid_colunas):
                         bloco = grid[y][x]
