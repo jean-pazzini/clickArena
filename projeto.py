@@ -269,6 +269,7 @@ def mostrar_instrucoes():
         "",
         "Controles:",
         "- Setas ESQUERDA/DIREITA: Movem o bloco",
+        "- Setas BAIXO: Acelera a queda do bloco",
         "- P: Pausa o game",
         "",
         "Mecânicas:",
