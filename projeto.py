@@ -141,7 +141,7 @@ def mostrar_menu_pause():
     
     titulo = fonte.render("JOGO PAUSADO", True, (255, 255, 255))
     opcao_continuar = fonte.render("P: Voltar ao jogo", True, (255, 255, 255))
-    opcao_reiniciar = fonte.render("R: Reiniciar o jogo", True, (255, 255, 255))
+    opcao_reiniciar = fonte.render("R: Reiniciar a fase atual", True, (255, 255, 255))
     opcao_menu = fonte.render("T: Voltar para tela inicial", True, (255, 255, 255))
     
     tela.blit(titulo, (tela_largura // 2 - titulo.get_width() // 2, tela_altura // 4))
@@ -308,7 +308,7 @@ def mostrar_instrucoes():
                     esperando = False
 
 # Ajusta o tamanho do personagem para ficar maior e proporcional à tela
-personagem_img = pygame.image.load("personagem.png")  # Certifique-se de ter o arquivo "personagem.png"
+personagem_img = pygame.image.load("personagem.png")  # Selecionando o arquivo do personagem
 personagem_img = pygame.transform.scale(personagem_img, (200, 200))  # Ajusta o tamanho para 100x100 pixels
 
 def mostrar_balao_pixel(frase):
@@ -397,7 +397,7 @@ def mostrar_balao_pixel(frase):
         clock.tick(60)
                     
                     
-def obter_palavras_do_jogador(tamanho_palavra=3):
+def obter_palavras_do_jogador(tamanho_palavra):
     """Tela para o jogador digitar palavras de tamanho especificado"""
     palavras = []
     fonte_input = pygame.font.SysFont("arial", 20)
@@ -506,6 +506,26 @@ def mostrar_menu():
                     pygame.quit()
                     exit()
 
+def mostrar_mensagens_fase1():
+    """Mostra o balão pixel art com instruções para a fase 1"""
+    mensagem = "Bem vindo ao Word Tetris! Para começar digite 2 palavras com 3 letras:"
+    mostrar_balao_pixel(mensagem)
+    
+def fase_1():
+    """Fase 1 do jogo, onde o jogador insere as palavras"""
+    global PALAVRAS_VALIDAS, palavras_encontradas, LETRAS_PERMITIDAS, grid, tempo_queda, ultima_queda
+    global bloco_atual, pausado, queda_rapida
+    mostrar_mensagens_fase1()
+    PALAVRAS_VALIDAS = obter_palavras_do_jogador(3)
+    palavras_encontradas = []
+    LETRAS_PERMITIDAS = list(set(''.join(PALAVRAS_VALIDAS)))
+    grid = [[None for _ in range(grid_colunas)] for _ in range(grid_linhas)]
+    tempo_queda = 500
+    ultima_queda = pygame.time.get_ticks()
+    bloco_atual = Bloco(random.choice(LETRAS_PERMITIDAS))
+    pausado = False
+    queda_rapida = False
+    
 def mostrar_mensagens_fase2():
     """Mostra as mensagens de transição para a fase 2"""
     mensagens = [
@@ -523,8 +543,7 @@ def mostrar_mensagens_fase2():
 def iniciar_fase2():
     """Inicia a segunda fase com palavras de 4 letras e cronômetro"""
     global PALAVRAS_VALIDAS, palavras_encontradas, LETRAS_PERMITIDAS, grid, tempo_queda, ultima_queda
-    global bloco_atual, pausado, queda_rapida  # <-- adicionado
-
+    global bloco_atual, pausado, queda_rapida
     mostrar_mensagens_fase2()
     PALAVRAS_VALIDAS = obter_palavras_do_jogador(4)  # Agora palavras de 4 letras
     palavras_encontradas = []
@@ -709,21 +728,11 @@ def iniciar_fase2():
         pygame.display.flip()
         pygame.time.delay(30)
 
-# Modifique o loop principal para incluir a transição para a fase 2
+
 while True:
     acao = mostrar_menu()
     if acao == "jogar":
-        mostrar_balao_pixel("Bem vindo ao Word Tetris! Para começar digite 2 palavras com 3 letras: ")
-        PALAVRAS_VALIDAS = obter_palavras_do_jogador()
-        palavras_encontradas = []
-        LETRAS_PERMITIDAS = list(set(''.join(PALAVRAS_VALIDAS)))
-        grid = [[None for _ in range(grid_colunas)] for _ in range(grid_linhas)]
-        tempo_queda = 500
-        ultima_queda = pygame.time.get_ticks()
-        bloco_atual = Bloco(random.choice(LETRAS_PERMITIDAS))
-        pausado = False
-        queda_rapida = False
-
+        fase_1()  # Inicia a fase 1 do jogo
         rodando = True
         while rodando:
             tela.fill((30, 30, 30))
@@ -776,7 +785,7 @@ while True:
                             reiniciar_fase()
                             rodando = False
                         elif len(palavras_encontradas) == len(PALAVRAS_VALIDAS):
-                            iniciar_fase2()  # Transição para a fase 2 (agora com fase final embutida)
+                            iniciar_fase2()  # Transição para a fase 2
                             rodando = False
                     ultima_queda = tempo_atual
 
