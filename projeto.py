@@ -199,30 +199,40 @@ def aplicar_gravidade_animada():
 def verificar_palavras():
     """Verifica se foi formado alguma palavra válida"""
     global palavras_encontradas
-    
-    """Verifica palavras validas nas linhas"""
+
+    # Verifica palavras válidas nas linhas
     for y in range(grid_linhas):
         linha = ''.join([grid[y][x].letra if grid[y][x] else '' for x in range(grid_colunas)])
         for palavra in PALAVRAS_VALIDAS:
-            if palavra in linha and palavra not in palavras_encontradas:
-                palavras_encontradas.append(palavra)
-                idx = linha.index(palavra)
-                # Remove os blocos que formaram uma palavra
-                for i in range(len(palavra)):
-                    grid[y][idx + i] = None
+            if palavra not in palavras_encontradas:
+                idx = 0
+                while True:
+                    idx = linha.find(palavra, idx)
+                    if idx == -1:
+                        break
+                    palavras_encontradas.append(palavra)
+                    # Remove os blocos que formaram a palavra
+                    for i in range(len(palavra)):
+                        grid[y][idx + i] = None
+                    idx += len(palavra)  # Continua procurando após a palavra encontrada
 
-    """Verifica palavras validas nas colunas"""
+    # Verifica palavras válidas nas colunas
     for x in range(grid_colunas):
         coluna_com_posicoes = [(y, grid[y][x].letra) for y in range(grid_linhas) if grid[y][x]]
         coluna = ''.join([letra for (y, letra) in coluna_com_posicoes])
         for palavra in PALAVRAS_VALIDAS:
-            if palavra in coluna and palavra not in palavras_encontradas:
-                palavras_encontradas.append(palavra)
-                idx = coluna.index(palavra)
-                # Remove os blocos que formaram uma palavra
-                for i in range(len(palavra)):
-                    y_real = coluna_com_posicoes[idx + i][0]  # Pega o y armazenado
-                    grid[y_real][x] = None  # Remove na posição correta
+            if palavra not in palavras_encontradas:
+                idx = 0
+                while True:
+                    idx = coluna.find(palavra, idx)
+                    if idx == -1:
+                        break
+                    palavras_encontradas.append(palavra)
+                    # Remove os blocos que formaram a palavra
+                    for i in range(len(palavra)):
+                        y_real = coluna_com_posicoes[idx + i][0]
+                        grid[y_real][x] = None
+                    idx += len(palavra)
 
     aplicar_gravidade_animada()
 
@@ -243,12 +253,12 @@ def mostrar_fim_de_jogo(mensagem):
     texto_fim = fonte.render(mensagem, True, (255, 255, 255))
     tela.blit(texto_fim, (tela_largura // 2 - texto_fim.get_width() // 2, tela_altura // 2))
     
-def reiniciar_jogo():
-    """Reinicia todas as variáveis do game"""
+def reiniciar_fase():
+    """Reinicia apenas a fase atual, mantendo as palavras válidas e letras permitidas"""
     global grid, palavras_encontradas, bloco_atual, ultima_queda, pausado
     grid = [[None for _ in range(grid_colunas)] for _ in range(grid_linhas)]
     palavras_encontradas = []
-    bloco_atual = Bloco(random.choice(list(CORES.keys())))
+    bloco_atual = Bloco(random.choice(LETRAS_PERMITIDAS))
     ultima_queda = pygame.time.get_ticks()
     pausado = False
     
@@ -379,9 +389,12 @@ def obter_palavras_do_jogador(tamanho_palavra=3):
     fonte_input = pygame.font.SysFont("arial", 20)
     fonte_titulo = pygame.font.SysFont("arial", 26, bold=True)
     fonte_instrucao = pygame.font.SysFont("arial", 16, italic=True)
+    fonte_erro = pygame.font.SysFont("arial", 16, bold=True)
     input_ativa = [True, False]
     textos = ["", ""]
     indice = 0
+    erro_palavras_iguais = False
+    erro_timestamp = 0  # Marca o tempo do erro
 
     while len(palavras) < 2:
         tela.fill((30, 30, 30))
@@ -405,7 +418,15 @@ def obter_palavras_do_jogador(tamanho_palavra=3):
         # Instrução
         instrucao = fonte_instrucao.render("Pressione ENTER para confirmar cada palavra", True, (180, 180, 180))
         tela.blit(instrucao, (tela_largura // 2 - instrucao.get_width() // 2, 250))
-        
+
+        # Mensagem de erro se as palavras forem iguais
+        if erro_palavras_iguais:
+            erro_texto = fonte_erro.render("As palavras não podem ser iguais!", True, (255, 80, 80))
+            tela.blit(erro_texto, (tela_largura // 2 - erro_texto.get_width() // 2, 280))
+            # Remove a mensagem após 2 segundos
+            if pygame.time.get_ticks() - erro_timestamp > 2000:
+                erro_palavras_iguais = False
+
         pygame.display.flip()
 
         for evento in pygame.event.get():
@@ -428,6 +449,19 @@ def obter_palavras_do_jogador(tamanho_palavra=3):
                         textos[indice] = textos[indice][:-1]
                     elif evento.unicode.isalpha() and len(textos[indice]) < tamanho_palavra:
                         textos[indice] += evento.unicode.upper()
+
+        # Após inserir as duas palavras, verifica se são iguais
+        if len(palavras) == 2:
+            if palavras[0] == palavras[1]:
+                erro_palavras_iguais = True
+                erro_timestamp = pygame.time.get_ticks()
+                palavras = []
+                textos = ["", ""]
+                input_ativa = [True, False]
+                indice = 0
+            else:
+                erro_palavras_iguais = False
+
     return palavras
 
 def mostrar_menu():
@@ -509,7 +543,7 @@ def iniciar_fase2():
             mostrar_fim_de_jogo("Tempo esgotado! Reiniciando o jogo...")
             pygame.display.flip()
             pygame.time.delay(3000)
-            reiniciar_jogo()
+            reiniciar_fase()
             return
 
         for evento in pygame.event.get():
@@ -524,7 +558,7 @@ def iniciar_fase2():
                         if acao == "continuar":
                             pausado = False
                         elif acao == "reiniciar":
-                            reiniciar_jogo()
+                            reiniciar_fase()
                             return
                         elif acao == "menu":
                             rodando = False
@@ -555,8 +589,8 @@ def iniciar_fase2():
                         mostrar_fim_de_jogo("Game Over! Reiniciando o jogo...")
                         pygame.display.flip()
                         pygame.time.delay(3000)
-                        reiniciar_jogo()
-                        return
+                        reiniciar_fase()
+                        rodando = False
                     elif len(palavras_encontradas) == len(PALAVRAS_VALIDAS):
                         mostrar_fim_de_jogo("Parabéns! Você venceu a fase 2!")
                         pygame.display.flip()
@@ -615,7 +649,7 @@ while True:
                             if acao == "continuar":
                                 pausado = False
                             elif acao == "reiniciar":
-                                reiniciar_jogo()
+                                reiniciar_fase()
                                 rodando = False
                             elif acao == "menu":
                                 rodando = False
@@ -646,7 +680,7 @@ while True:
                             mostrar_fim_de_jogo("Game Over! Reiniciando o jogo...")
                             pygame.display.flip()
                             pygame.time.delay(3000)
-                            reiniciar_jogo()
+                            reiniciar_fase()
                             rodando = False
                         elif len(palavras_encontradas) == len(PALAVRAS_VALIDAS):
                             iniciar_fase2()  # Transição para a fase 2
