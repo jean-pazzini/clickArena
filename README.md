@@ -1,4 +1,4 @@
-# clickArena
+# wordTetris
 
 ## Projeto Final: Desenvolvimento de Jogo Sério para Reabilitação
   ### Objetivo:
