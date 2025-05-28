@@ -307,9 +307,9 @@ def mostrar_instrucoes():
                 if evento.key == pygame.K_t:
                     esperando = False
 
-# Ajusta o tamanho do personagem para ficar maior e proporcional à tela
-personagem_img = pygame.image.load("personagem.png")  # Selecionando o arquivo do personagem
-personagem_img = pygame.transform.scale(personagem_img, (200, 200))  # Ajusta o tamanho para 100x100 pixels
+# Ajusta o tamanho do personagem
+personagem_img = pygame.image.load("personagem.png")  # arquivo do personagem
+personagem_img = pygame.transform.scale(personagem_img, (200, 200))  # Ajusta o tamanho do personagem
 
 def mostrar_balao_pixel(frase):
     """Mostra um balão pixel art com efeito máquina de escrever e espera o usuário pressionar ENTER para continuar"""
@@ -345,7 +345,6 @@ def mostrar_balao_pixel(frase):
 
         tela.fill((30, 30, 30))
         
-        # Desenha personagem se existir
         if 'personagem_img' in globals():
             tela.blit(personagem_img, (x_balao - 15, y_balao + altura_balao + 30))
 
@@ -363,7 +362,7 @@ def mostrar_balao_pixel(frase):
             (x_balao+115, y_balao+altura_balao)
         ])
         
-        # Mostra texto atual (completo ou em animação)
+        # Mostra texto atual
         texto_atual = frase[:i] if not texto_completo else frase
         
         # Quebra texto em linhas
@@ -398,7 +397,7 @@ def mostrar_balao_pixel(frase):
                     
                     
 def obter_palavras_do_jogador(tamanho_palavra):
-    """Tela para o jogador digitar palavras de tamanho especificado"""
+    """Tela para o jogador digitar palavras"""
     palavras = []
     fonte_input = pygame.font.SysFont("arial", 20)
     fonte_titulo = pygame.font.SysFont("arial", 26, bold=True)
@@ -782,7 +781,11 @@ def iniciar_fase3():
             mostrar_fim_de_jogo("Parabéns! Você concluiu todas as fases!")
             pygame.display.flip()
             pygame.time.delay(4000)
-            return
+            # Mensagens finais antes de encerrar o jogo
+            mostrar_balao_pixel("Uau! Você venceu o Word Tetris!")
+            mostrar_balao_pixel("Parabéns, campeão! Obrigado por jogar!")
+            pygame.quit()
+            exit()
 
 while True:
     acao = mostrar_menu()
