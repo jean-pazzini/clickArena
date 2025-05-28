@@ -508,8 +508,11 @@ def mostrar_menu():
 
 def mostrar_mensagens_fase1():
     """Mostra o balão pixel art com instruções para a fase 1"""
-    mensagem = "Bem vindo ao Word Tetris! Para começar digite 2 palavras com 3 letras:"
-    mostrar_balao_pixel(mensagem)
+    mensagens = ["Bem vindo! Me chamo Tétrico e serei seu ajudante aqui no Word Tetris!",
+                 "Vamos formar palavras juntos?",
+                "Para começar digite 2 palavras com 3 letras:"]
+    for mensagem in mensagens:
+        mostrar_balao_pixel(mensagem)
     
 def fase_1():
     """Fase 1 do jogo, onde o jogador insere as palavras"""
