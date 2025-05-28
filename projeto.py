@@ -261,7 +261,7 @@ def reiniciar_fase():
     bloco_atual = Bloco(random.choice(LETRAS_PERMITIDAS))
     ultima_queda = pygame.time.get_ticks()
     pausado = False
-    
+
 def mostrar_instrucoes():
     """Tela de instruções do jogo"""
     tela.fill((30, 30, 30))
@@ -555,7 +555,6 @@ def iniciar_fase2():
     tempo_queda = 500 # Corrige o tempo de queda para o valor padrão
     ultima_queda = pygame.time.get_ticks()
 
-    # Inicializa o cronômetro
     tempo_inicio = pygame.time.get_ticks()
     tempo_limite = 90  # Define o limite de tempo em segundos (1 minuto e meio)
 
@@ -570,17 +569,16 @@ def iniciar_fase2():
         desenhar_palavras_alvo()
         desenhar_instrucao_pause()
 
-        # Calcula o tempo restante
         tempo_passado = (pygame.time.get_ticks() - tempo_inicio) // 1000
         tempo_restante = max(0, tempo_limite - tempo_passado)
         timer_text = fonte.render(f"Tempo: {tempo_restante}s", True, (255, 255, 255))
         tela.blit(timer_text, (10, 10))
 
         if tempo_restante == 0:
-            mostrar_fim_de_jogo("Tempo esgotado! Reiniciando o jogo...")
+            mostrar_fim_de_jogo("Tempo esgotado! Reiniciando a fase 2...")
             pygame.display.flip()
             pygame.time.delay(3000)
-            reiniciar_fase()
+            iniciar_fase2()  # Reinicia a fase 2 do zero
             return
 
         for evento in pygame.event.get():
@@ -595,7 +593,7 @@ def iniciar_fase2():
                         if acao == "continuar":
                             pausado = False
                         elif acao == "reiniciar":
-                            reiniciar_fase()
+                            iniciar_fase2()
                             return
                         elif acao == "menu":
                             rodando = False
@@ -613,7 +611,6 @@ def iniciar_fase2():
 
         if not pausado:
             tempo_atual = pygame.time.get_ticks()
-            # Certifica-se de usar o tempo correto baseado no estado de queda rápida
             tempo_queda_atual = tempo_queda_rapida if queda_rapida else tempo_queda
             if tempo_atual - ultima_queda > tempo_queda_atual:
                 if bloco_atual:
@@ -625,11 +622,11 @@ def iniciar_fase2():
                 elif not blocos_em_movimento():
                     bloco_atual = Bloco(random.choice(LETRAS_PERMITIDAS))
                     if verificar_game_over():
-                        mostrar_fim_de_jogo("Game Over! Reiniciando o jogo...")
+                        mostrar_fim_de_jogo("Game Over! Reiniciando a fase 2...")
                         pygame.display.flip()
                         pygame.time.delay(3000)
-                        reiniciar_fase()
-                        rodando = False
+                        iniciar_fase2()  # Reinicia a fase 2 do zero
+                        return
                 ultima_queda = tempo_atual
 
         for y in range(grid_linhas):
@@ -650,6 +647,137 @@ def iniciar_fase2():
         pygame.display.flip()
         pygame.time.delay(30)
 
+        # ADICIONE ESTA VERIFICAÇÃO AO FINAL DO LOOP
+        if len(palavras_encontradas) == len(PALAVRAS_VALIDAS):
+            # Todas as palavras encontradas, avança para a próxima fase
+            pygame.time.delay(1000)
+            iniciar_fase3()
+            return
+
+def mostrar_mensagens_fase3():
+    """Mostra as mensagens de transição para a fase 3"""
+    mensagens = [
+        "Parabéns! Você venceu a fase 2!",
+        "Agora vem o desafio final...",
+        "FASE 3!!!",
+        "Digite 2 palavras com 5 letras.",
+        "Você terá apenas UM MINUTO para completar!",
+        "Boa sorte, campeão!"
+    ]
+    for mensagem in mensagens:
+        mostrar_balao_pixel(mensagem)
+
+def iniciar_fase3():
+    """Inicia a terceira fase com palavras de 5 letras e cronômetro de 1 minuto"""
+    global PALAVRAS_VALIDAS, palavras_encontradas, LETRAS_PERMITIDAS, grid, tempo_queda, ultima_queda
+    global bloco_atual, pausado, queda_rapida
+    mostrar_mensagens_fase3()
+    PALAVRAS_VALIDAS = obter_palavras_do_jogador(5)  # Palavras de 5 letras
+    palavras_encontradas = []
+    LETRAS_PERMITIDAS = list(set(''.join(PALAVRAS_VALIDAS)))
+    grid = [[None for _ in range(grid_colunas)] for _ in range(grid_linhas)]
+    tempo_queda = 500
+    ultima_queda = pygame.time.get_ticks()
+
+    tempo_inicio = pygame.time.get_ticks()
+    tempo_limite = 90  # 1 minuto
+
+    bloco_atual = Bloco(random.choice(LETRAS_PERMITIDAS))
+    pausado = False
+    queda_rapida = False
+
+    rodando = True
+    while rodando:
+        tela.fill((30, 30, 30))
+        desenhar_borda_grid()
+        desenhar_palavras_alvo()
+        desenhar_instrucao_pause()
+
+        tempo_passado = (pygame.time.get_ticks() - tempo_inicio) // 1000
+        tempo_restante = max(0, tempo_limite - tempo_passado)
+        timer_text = fonte.render(f"Tempo: {tempo_restante}s", True, (255, 255, 255))
+        tela.blit(timer_text, (10, 10))
+
+        if tempo_restante == 0:
+            mostrar_fim_de_jogo("Tempo esgotado! Reiniciando a fase 3...")
+            pygame.display.flip()
+            pygame.time.delay(3000)
+            iniciar_fase3()
+            return
+
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            elif evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_p:
+                    pausado = not pausado
+                    if pausado:
+                        acao = mostrar_menu_pause()
+                        if acao == "continuar":
+                            pausado = False
+                        elif acao == "reiniciar":
+                            iniciar_fase3()
+                            return
+                        elif acao == "menu":
+                            rodando = False
+                            break
+                elif evento.key == pygame.K_DOWN:
+                    queda_rapida = True
+                elif not pausado and bloco_atual:
+                    if evento.key == pygame.K_LEFT and bloco_atual.x > 0 and grid[bloco_atual.y][bloco_atual.x - 1] is None:
+                        bloco_atual.x -= 1
+                    elif evento.key == pygame.K_RIGHT and bloco_atual.x < grid_colunas - 1 and grid[bloco_atual.y][bloco_atual.x + 1] is None:
+                        bloco_atual.x += 1
+            elif evento.type == pygame.KEYUP:
+                if evento.key == pygame.K_DOWN:
+                    queda_rapida = False
+
+        if not pausado:
+            tempo_atual = pygame.time.get_ticks()
+            tempo_queda_atual = tempo_queda_rapida if queda_rapida else tempo_queda
+            if tempo_atual - ultima_queda > tempo_queda_atual:
+                if bloco_atual:
+                    if not bloco_atual.mover_para_baixo():
+                        bloco_atual.fixar()
+                        verificar_palavras()
+                        bloco_atual = None
+                        queda_rapida = False
+                elif not blocos_em_movimento():
+                    bloco_atual = Bloco(random.choice(LETRAS_PERMITIDAS))
+                    if verificar_game_over():
+                        mostrar_fim_de_jogo("Game Over! Reiniciando a fase 3...")
+                        pygame.display.flip()
+                        pygame.time.delay(3000)
+                        iniciar_fase3()
+                        return
+                ultima_queda = tempo_atual
+
+        for y in range(grid_linhas):
+            for x in range(grid_colunas):
+                bloco = grid[y][x]
+                if bloco:
+                    bloco.atualizar()
+
+        for y in range(grid_linhas):
+            for x in range(grid_colunas):
+                bloco = grid[y][x]
+                if bloco:
+                    bloco.desenhar()
+
+        if bloco_atual:
+            bloco_atual.desenhar()
+
+        pygame.display.flip()
+        pygame.time.delay(30)
+
+        # ADICIONE ESTA VERIFICAÇÃO AO FINAL DO LOOP
+        if len(palavras_encontradas) == len(PALAVRAS_VALIDAS):
+            # Todas as palavras encontradas, finaliza o jogo
+            mostrar_fim_de_jogo("Parabéns! Você concluiu todas as fases!")
+            pygame.display.flip()
+            pygame.time.delay(4000)
+            return
 
 while True:
     acao = mostrar_menu()
@@ -708,6 +836,9 @@ while True:
                             rodando = False
                         elif len(palavras_encontradas) == len(PALAVRAS_VALIDAS):
                             iniciar_fase2()  # Transição para a fase 2
+                            # Após fase 2, se todas palavras encontradas, inicia fase 3
+                            if len(palavras_encontradas) == len(PALAVRAS_VALIDAS):
+                                iniciar_fase3()
                             rodando = False
                     ultima_queda = tempo_atual
 
