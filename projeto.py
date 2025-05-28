@@ -509,8 +509,9 @@ def mostrar_menu():
 def mostrar_mensagens_fase1():
     """Mostra o balão pixel art com instruções para a fase 1"""
     mensagens = ["Bem vindo! Me chamo Tétrico e serei seu ajudante aqui no Word Tetris!",
+                 "Estou aqui para te ajudar a formar palavras!",
                  "Vamos formar palavras juntos?",
-                "Para começar digite 2 palavras com 3 letras:"]
+                 "Para começar, digite 2 palavras com 3 letras:"]
     for mensagem in mensagens:
         mostrar_balao_pixel(mensagem)
     
@@ -538,6 +539,7 @@ def mostrar_mensagens_fase2():
         "Nesta fase é necessário adicionar 2 palavras com 4 letras!",
         "ATENÇÃO!!!!",
         "Será adicionado um cronômetro com UM MINUTO E MEIO para encontrar as palavras!!",
+        "Só para deixar o jogo mais interessante, né?",
         "Que a sorte esteja com você! :)",
     ]
     for mensagem in mensagens:
@@ -658,10 +660,13 @@ def mostrar_mensagens_fase3():
     """Mostra as mensagens de transição para a fase 3"""
     mensagens = [
         "Parabéns! Você venceu a fase 2!",
+        "Você é um verdadeiro mestre das palavras!",
+        "Mas não se engane, o jogo ainda não acabou!",
         "Agora vem o desafio final...",
         "FASE 3!!!",
-        "Digite 2 palavras com 5 letras.",
+        "Digite 2 palavras com 5 letras!!!",
         "Você terá apenas UM MINUTO para completar!",
+        "Prepare-se para o desafio!",
         "Boa sorte, campeão!"
     ]
     for mensagem in mensagens:
@@ -680,7 +685,7 @@ def iniciar_fase3():
     ultima_queda = pygame.time.get_ticks()
 
     tempo_inicio = pygame.time.get_ticks()
-    tempo_limite = 90  # 1 minuto
+    tempo_limite = 60  # 1 minuto
 
     bloco_atual = Bloco(random.choice(LETRAS_PERMITIDAS))
     pausado = False
