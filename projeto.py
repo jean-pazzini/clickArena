@@ -552,12 +552,12 @@ def iniciar_fase2():
     palavras_encontradas = []
     LETRAS_PERMITIDAS = list(set(''.join(PALAVRAS_VALIDAS)))
     grid = [[None for _ in range(grid_colunas)] for _ in range(grid_linhas)]
-    tempo_queda = 500
+    tempo_queda = 500 # Corrige o tempo de queda para o valor padrão
     ultima_queda = pygame.time.get_ticks()
 
-    # Cronômetro de 1 minuto e meio
-    tempo_limite = 90  # 90 segundos
+    # Inicializa o cronômetro
     tempo_inicio = pygame.time.get_ticks()
+    tempo_limite = 90  # Define o limite de tempo em segundos (1 minuto e meio)
 
     bloco_atual = Bloco(random.choice(LETRAS_PERMITIDAS))
     pausado = False
@@ -613,6 +613,7 @@ def iniciar_fase2():
 
         if not pausado:
             tempo_atual = pygame.time.get_ticks()
+            # Certifica-se de usar o tempo correto baseado no estado de queda rápida
             tempo_queda_atual = tempo_queda_rapida if queda_rapida else tempo_queda
             if tempo_atual - ultima_queda > tempo_queda_atual:
                 if bloco_atual:
@@ -620,6 +621,7 @@ def iniciar_fase2():
                         bloco_atual.fixar()
                         verificar_palavras()
                         bloco_atual = None
+                        queda_rapida = False  # Reseta o estado de queda rápida após fixar o bloco
                 elif not blocos_em_movimento():
                     bloco_atual = Bloco(random.choice(LETRAS_PERMITIDAS))
                     if verificar_game_over():
@@ -628,96 +630,13 @@ def iniciar_fase2():
                         pygame.time.delay(3000)
                         reiniciar_fase()
                         rodando = False
-                    elif len(palavras_encontradas) == len(PALAVRAS_VALIDAS):
-                        # Fim da fase 2: personagem parabeniza e pede novas palavras para a fase final
-                        mostrar_fim_de_jogo("Parabéns! Você venceu a fase 2!")
-                        pygame.display.flip()
-                        pygame.time.delay(2500)
-                        mostrar_balao_pixel("Incrível! Você venceu a fase 2!")
-                        mostrar_balao_pixel("Agora vamos para a fase final!")
-                        mostrar_balao_pixel("Digite novamente 2 palavras de 4 letras para o desafio final:")
-                        PALAVRAS_VALIDAS[:] = obter_palavras_do_jogador(4)
-                        palavras_encontradas.clear()
-                        LETRAS_PERMITIDAS[:] = list(set(''.join(PALAVRAS_VALIDAS)))
-                        grid[:] = [[None for _ in range(grid_colunas)] for _ in range(grid_linhas)]
-                        tempo_queda = 500
-                        ultima_queda = pygame.time.get_ticks()
-                        bloco_atual = Bloco(random.choice(LETRAS_PERMITIDAS))
-                        pausado = False
-                        queda_rapida = False
-                        tempo_inicio = pygame.time.get_ticks()
-                        # Continua rodando na mesma lógica da fase 2, mas com novas palavras
-                        # Agora, ao completar as palavras, volta ao menu inicial com parabéns
-                        fase_final = True
-                        while fase_final:
-                            tela.fill((30, 30, 30))
-                            desenhar_borda_grid()
-                            desenhar_palavras_alvo()
-                            desenhar_instrucao_pause()
-                            # Cronômetro opcional: pode remover se não quiser tempo na final
-                            tempo_passado = (pygame.time.get_ticks() - tempo_inicio) // 1000
-                            tempo_restante = max(0, tempo_limite - tempo_passado)
-                            timer_text = fonte.render(f"Tempo: {tempo_restante}s", True, (255, 255, 255))
-                            tela.blit(timer_text, (10, 10))
-                            for evento in pygame.event.get():
-                                if evento.type == pygame.QUIT:
-                                    pygame.quit()
-                                    exit()
-                                elif evento.type == pygame.KEYDOWN:
-                                    if evento.key == pygame.K_p:
-                                        pausado = not pausado
-                                        if pausado:
-                                            acao = mostrar_menu_pause()
-                                            if acao == "continuar":
-                                                pausado = False
-                                            elif acao == "reiniciar":
-                                                reiniciar_fase()
-                                                return
-                                            elif acao == "menu":
-                                                return
-                                    elif evento.key == pygame.K_DOWN:
-                                        queda_rapida = True
-                                    elif not pausado and bloco_atual:
-                                        if evento.key == pygame.K_LEFT and bloco_atual.x > 0 and grid[bloco_atual.y][bloco_atual.x - 1] is None:
-                                            bloco_atual.x -= 1
-                                        elif evento.key == pygame.K_RIGHT and bloco_atual.x < grid_colunas - 1 and grid[bloco_atual.y][bloco_atual.x + 1] is None:
-                                            bloco_atual.x += 1
-                                elif evento.type == pygame.KEYUP:
-                                    if evento.key == pygame.K_DOWN:
-                                        queda_rapida = False
-                            if not pausado:
-                                tempo_atual = pygame.time.get_ticks()
-                                tempo_queda_atual = tempo_queda_rapida if queda_rapida else tempo_queda
-                                if tempo_atual - ultima_queda > tempo_queda_atual:
-                                    if bloco_atual:
-                                        if not bloco_atual.mover_para_baixo():
-                                            bloco_atual.fixar()
-                                            verificar_palavras()
-                                            bloco_atual = None
-                                    elif not blocos_em_movimento():
-                                        bloco_atual = Bloco(random.choice(LETRAS_PERMITIDAS))
-                                        if verificar_game_over():
-                                            mostrar_fim_de_jogo("Game Over! Reiniciando o jogo...")
-                                            pygame.display.flip()
-                                            pygame.time.delay(3000)
-                                            reiniciar_fase()
-                                            fase_final = False
-                                            rodando = False
-                                        elif len(palavras_encontradas) == len(PALAVRAS_VALIDAS):
-                                            # Parabéns final e volta ao menu
-                                            mostrar_fim_de_jogo("Parabéns! Você venceu a fase final!")
-                                            pygame.display.flip()
-                                            pygame.time.delay(2500)
-                                            mostrar_balao_pixel("Uau! Você venceu o Word Tetris!")
-                                            mostrar_balao_pixel("Parabéns, campeão! Obrigado por jogar!")
-                                            fase_final = False
-                                            rodando = False
-                                            return
-            for y in range(grid_linhas):
-                for x in range(grid_colunas):
-                    bloco = grid[y][x]
-                    if bloco:
-                        bloco.atualizar()
+                ultima_queda = tempo_atual
+
+        for y in range(grid_linhas):
+            for x in range(grid_colunas):
+                bloco = grid[y][x]
+                if bloco:
+                    bloco.atualizar()
 
         for y in range(grid_linhas):
             for x in range(grid_colunas):
